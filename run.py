@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 from dataclasses import dataclass, field
 from typing import Optional, Union
 
@@ -21,6 +20,9 @@ from transformers import (
 )
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 from transformers.trainer_utils import get_last_checkpoint
+
+from models.bert import BertForChID
+from models.ernie import ErnieForChID
 
 logger = logging.getLogger(__name__)
 
@@ -289,15 +291,36 @@ def main():
         use_auth_token=True if model_args.use_auth_token else None,
         trust_remote_code=model_args.trust_remote_code,
     )
-    model = AutoModel.from_pretrained(
-        model_args.model_name_or_path,
-        from_tf=bool(".ckpt" in model_args.model_name_or_path),
-        config=config,
-        cache_dir=model_args.cache_dir,
-        revision=model_args.model_revision,
-        use_auth_token=True if model_args.use_auth_token else None,
-        trust_remote_code=model_args.trust_remote_code,
-    )
+    if "ernie" in model_args.model_name_or_path:
+        model = ErnieForChID.from_pretrained(
+            model_args.model_name_or_path,
+            from_tf=bool(".ckpt" in model_args.model_name_or_path),
+            config=config,
+            cache_dir=model_args.cache_dir,
+            revision=model_args.model_revision,
+            use_auth_token=True if model_args.use_auth_token else None,
+            trust_remote_code=model_args.trust_remote_code,
+        )
+    elif "bert" in model_args.model_name_or_path:
+        model = BertForChID.from_pretrained(
+            model_args.model_name_or_path,
+            from_tf=bool(".ckpt" in model_args.model_name_or_path),
+            config=config,
+            cache_dir=model_args.cache_dir,
+            revision=model_args.model_revision,
+            use_auth_token=True if model_args.use_auth_token else None,
+            trust_remote_code=model_args.trust_remote_code,
+        )
+    else:
+        model = AutoModel.from_pretrained(
+            model_args.model_name_or_path,
+            from_tf=bool(".ckpt" in model_args.model_name_or_path),
+            config=config,
+            cache_dir=model_args.cache_dir,
+            revision=model_args.model_revision,
+            use_auth_token=True if model_args.use_auth_token else None,
+            trust_remote_code=model_args.trust_remote_code,
+        )
 
     if data_args.max_seq_length is None:
         max_seq_length = tokenizer.model_max_length
